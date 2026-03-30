@@ -1,0 +1,10 @@
+# local / sensitive runtime artifacts
+.DS_Store
+**/.DS_Store
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+
+# Xiaohongshu local auth/session files
+skills/xiaohongshu/scripts/cookies.json
+**/cookies.json
