@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星河二班学生画像看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --paper: rgba(255, 251, 245, 0.9);
+      --panel: rgba(32, 49, 45, 0.92);
+      --ink: #1e1d1a;
+      --muted: #6d685f;
+      --line: rgba(30, 29, 26, 0.12);
+      --accent: #b55338;
+      --accent-soft: #e9b394;
+      --green: #26453f;
+      --gold: #d8a75d;
+      --blue: #7ca7b5;
+      --shadow: 0 24px 70px rgba(69, 46, 26, 0.14);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(216, 167, 93, 0.26), transparent 28%),
+        radial-gradient(circle at 85% 20%, rgba(124, 167, 181, 0.22), transparent 24%),
+        linear-gradient(135deg, #f8f3ea 0%, #f5efe4 58%, #efe6d8 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 360px;
+      height: 360px;
+      left: -120px;
+      top: 180px;
+      border-radius: 34% 66% 52% 48% / 49% 37% 63% 51%;
+      background: rgba(181, 83, 56, 0.09);
+      filter: blur(2px);
+    }
+
+    body::after {
+      width: 420px;
+      height: 420px;
+      right: -140px;
+      bottom: -110px;
+      border-radius: 64% 36% 54% 46% / 47% 42% 58% 53%;
+      background: rgba(38, 69, 63, 0.09);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(1400px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .overview-card,
+    .roster,
+    .detail-panel {
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      background: linear-gradient(140deg, rgba(255, 251, 245, 0.92), rgba(255, 247, 239, 0.82));
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      overflow: hidden;
+      position: relative;
+      min-height: 320px;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -40px;
+      top: -70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(181, 83, 56, 0.24), rgba(181, 83, 56, 0));
+    }
+
+    .eyebrow,
+    .panel-title small {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .eyebrow::before,
+    .panel-title small::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.5;
+    }
+
+    h1,
+    h2,
+    h3,
+    .metric-value,
+    .student-name {
+      font-family: "ZCOOL XiaoWei", serif;
+      font-weight: 400;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 4vw, 4.6rem);
+      line-height: 1.02;
+      margin: 18px 0 18px;
+      max-width: 10ch;
+    }
+
+    .hero-copy {
+      max-width: 620px;
+      color: #4f4941;
+      font-size: 15px;
+      line-height: 1.85;
+      margin-bottom: 28px;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hero-tags span,
+    .chip,
+    .filter {
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      border: 1px solid rgba(30, 29, 26, 0.09);
+      background: rgba(255, 255, 255, 0.56);
+    }
+
+    .overview-card {
+      background: var(--panel);
+      color: #f6efe5;
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+      align-content: space-between;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .metric-label {
+      font-size: 12px;
+      color: rgba(246, 239, 229, 0.72);
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .metric-note {
+      font-size: 12px;
+      color: rgba(246, 239, 229, 0.72);
+      line-height: 1.7;
+    }
+
+    .decision-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .decision-strip span {
+      background: rgba(216, 167, 93, 0.14);
+      color: #f6efe5;
+      border: 1px solid rgba(216, 167, 93, 0.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .main {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .roster,
+    .detail-panel {
+      background: var(--paper);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      padding: 26px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .toolbar h2,
+    .detail-panel h2 {
+      font-size: 2rem;
+      margin: 6px 0 0;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .filter {
+      cursor: pointer;
+      transition: 180ms ease;
+      color: #514b43;
+    }
+
+    .filter:hover,
+    .filter.active {
+      transform: translateY(-2px);
+      background: var(--green);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .student-card {
+      border-radius: 24px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(30, 29, 26, 0.08);
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .student-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -24px -36px auto;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124, 167, 181, 0.18), transparent 60%);
+    }
+
+    .student-card:hover,
+    .student-card.active {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 32px rgba(58, 39, 22, 0.12);
+      border-color: rgba(38, 69, 63, 0.18);
+    }
+
+    .student-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .student-name {
+      font-size: 1.8rem;
+      margin: 0 0 4px;
+    }
+
+    .student-meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .score-badge {
+      flex-shrink: 0;
+      text-align: center;
+      min-width: 76px;
+      padding: 10px 10px 8px;
+      border-radius: 18px;
+      background: #f3ead7;
+      color: var(--green);
+      border: 1px solid rgba(38, 69, 63, 0.08);
+    }
+
+    .score-badge strong {
+      display: block;
+      font-size: 1.4rem;
+      line-height: 1;
+      font-family: "ZCOOL XiaoWei", serif;
+      font-weight: 400;
+    }
+
+    .score-badge span {
+      font-size: 11px;
+      color: #6a665d;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .chip {
+      padding: 7px 10px;
+      font-size: 12px;
+      background: rgba(255, 247, 239, 0.92);
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 32px;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(38, 69, 63, 0.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+    }
+
+    .student-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: #47423b;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .student-foot strong {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .profile-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .profile-name {
+      font-family: "ZCOOL XiaoWei", serif;
+      font-size: 2.4rem;
+      line-height: 1;
+      margin: 10px 0 8px;
+    }
+
+    .profile-summary {
+      color: #4d473f;
+      line-height: 1.8;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .risk-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #fff;
+      background: linear-gradient(120deg, var(--accent), #d06b4d);
+      white-space: nowrap;
+    }
+
+    .detail-block {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .detail-block h3 {
+      font-size: 1.35rem;
+      margin: 0 0 10px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      align-items: start;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .timeline-item span {
+      color: var(--muted);
+    }
+
+    .action-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .action-item {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(38, 69, 63, 0.06);
+      border: 1px solid rgba(38, 69, 63, 0.08);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(30, 29, 26, 0.08);
+    }
+
+    .mini-card strong {
+      display: block;
+      color: var(--green);
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .mini-card p {
+      margin: 0;
+      color: #4d473f;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed rgba(30, 29, 26, 0.14);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .main,
+      .student-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(100% - 20px, 1400px);
+        margin-top: 10px;
+      }
+
+      .hero-card,
+      .overview-card,
+      .roster,
+      .detail-panel {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      h1 {
+        max-width: none;
+        font-size: 2.6rem;
+      }
+
+      .toolbar,
+      .profile-top {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .filters,
+      .decision-strip {
+        justify-content: flex-start;
+      }
+
+      .overview-grid,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <article class="hero-card">
+        <div class="eyebrow">班级画像总览</div>
+        <h1>星河二班 学生画像总览</h1>
+        <p class="hero-copy">
+          整理本学期课堂表现、作业达成、项目协作、情绪反馈与家校沟通记录，将零散资料沉淀为可执行的人物画像。页面以班级为单位，帮助老师快速识别优势学生、波动学生和需要重点跟进的个体。
+        </p>
+        <div class="hero-tags">
+          <span>学业走势归纳</span>
+          <span>课堂参与画像</span>
+          <span>关系与情绪信号</span>
+          <span>个性化干预建议</span>
+        </div>
+      </article>
+
+      <aside class="overview-card">
+        <div class="panel-title">
+          <small>教师决策总览</small>
+          <h2>本学期班级信号</h2>
+        </div>
+        <div class="overview-grid" id="overviewGrid"></div>
+        <div>
+          <small>本周建议重点</small>
+          <div class="decision-strip">
+            <span>关注 2 名情绪波动学生</span>
+            <span>安排 1 组项目型挑战任务</span>
+            <span>复盘 3 名偏科学生的错题策略</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <main class="main">
+      <section class="roster">
+        <div class="toolbar">
+          <div>
+            <div class="eyebrow">学生画像列表</div>
+            <h2>班级人物画像卡</h2>
+          </div>
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="student-grid" id="studentGrid"></div>
+      </section>
+
+      <aside class="detail-panel" id="detailPanel">
+        <div class="panel-title">
+          <small>学生重点观察</small>
+          <h2>画像深描</h2>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const students = [
+      {
+        id: "zhang-yuxin",
+        name: "张语心",
+        seat: "第一组 03 号",
+        title: "稳定领跑型",
+        focus: "适合担任小组引领者，挑战更高阶任务",
+        score: 94,
+        tags: ["语文表达强", "项目统筹佳", "主动提问", "抗压稳定"],
+        metrics: { 学业: 94, 参与: 90, 协作: 96 },
+        summary: "课堂输出稳定，表达清晰，能把复杂任务拆解给同伴，是兼具成绩与组织力的班级引擎。",
+        risk: "低风险 / 高潜力",
+        style: "在结构化任务中表现极强，喜欢提前准备，面对开放题时仍保持条理。",
+        family: "家长反馈自主性强，家庭支持度高，愿意配合拓展学习。",
+        suggestion: [
+          "安排担任项目主持或学习搭档，带动组内弱势学生。",
+          "给予跨学科探究题，避免长期停留在舒适区。"
+        ],
+        notes: [
+          ["课堂", "连续 5 次主动总结当堂重点，表达完整。"],
+          ["作业", "订正细致，错题复盘有自己的分类方法。"],
+          ["项目", "在海报小组中承担资料整合与分工协调。"]
+        ]
+      },
+      {
+        id: "lin-zimo",
+        name: "林子墨",
+        seat: "第二组 05 号",
+        title: "安静钻研型",
+        focus: "提升课堂外显度，让能力被看见",
+        score: 88,
+        tags: ["理科思维强", "独立完成度高", "发言偏少", "细节敏感"],
+        metrics: { 学业: 91, 参与: 62, 协作: 78 },
+        summary: "有较强的独立思考和解决问题能力，但在公开表达和即时互动上偏谨慎，容易被低估。",
+        risk: "中低风险 / 需激发表达",
+        style: "更适合先书面整理再口头呈现，对突发提问的反应时间较长。",
+        family: "家庭作息规律，家长重视成绩，但对社交表达关注较少。",
+        suggestion: [
+          "先给 1 分钟准备卡片，再邀请其做短时分享。",
+          "与表达型同伴结对，让其以数据和逻辑贡献为主。"
+        ],
+        notes: [
+          ["测验", "理科综合正确率高，压轴题有独到方法。"],
+          ["课堂", "发言次数偏少，但笔记结构极完整。"],
+          ["互动", "更愿意在课后单独提问，不抢答。"]
+        ]
+      },
+      {
+        id: "chen-xiyao",
+        name: "陈熙瑶",
+        seat: "第三组 02 号",
+        title: "情绪敏感型",
+        focus: "先稳住情绪体验，再谈持续提升",
+        score: 81,
+        tags: ["审美感强", "文科有灵气", "波动明显", "需要肯定"],
+        metrics: { 学业: 80, 参与: 76, 协作: 84 },
+        summary: "在被看见和被鼓励时能快速进入状态，但当任务挫败或同伴评价不佳时，表现会明显回落。",
+        risk: "中风险 / 需稳定情绪",
+        style: "对课堂氛围极敏感，喜欢有反馈、有展示感的任务，情绪会直接影响学习投入。",
+        family: "家校沟通显示近期睡眠偏晚，家长希望老师多给予正向反馈。",
+        suggestion: [
+          "采用小步反馈策略，每周固定一次肯定式面谈。",
+          "布置可视化成果任务，增加完成后的展示机会。"
+        ],
+        notes: [
+          ["阶段", "月初表现活跃，月中因测试失利参与度下降。"],
+          ["作业", "创意类作业完成度高，基础巩固类任务拖延。"],
+          ["关系", "对同伴评价较在意，容易受小组氛围影响。"]
+        ]
+      },
+      {
+        id: "xu-haoran",
+        name: "徐浩然",
+        seat: "第四组 04 号",
+        title: "行动外放型",
+        focus: "把高能量转化为稳定产出",
+        score: 83,
+        tags: ["反应快", "表达欲强", "执行跳跃", "带动气氛"],
+        metrics: { 学业: 78, 参与: 95, 协作: 82 },
+        summary: "课堂活跃度高，擅长即兴表达和带动气氛，但任务执行容易受兴趣牵引，质量稳定性不足。",
+        risk: "中风险 / 需加强任务闭环",
+        style: "适合有竞争感和即时反馈的活动，若目标抽象则容易分心。",
+        family: "家长反馈精力旺盛，愿意支持行为习惯培养。",
+        suggestion: [
+          "给出清晰交付标准与分段检查点，减少中途跑偏。",
+          "在小组中承担汇报或破冰角色，同时绑定结果责任。"
+        ],
+        notes: [
+          ["课堂", "回答速度快，但容易抢答后忽略准确性。"],
+          ["项目", "能迅速带动团队进入状态，但收尾依赖同伴。"],
+          ["习惯", "作业提交偶有延迟，提醒后能快速补齐。"]
+        ]
+      },
+      {
+        id: "jiang-wenqi",
+        name: "江文琪",
+        seat: "第一组 06 号",
+        title: "均衡成长型",
+        focus: "通过目标拆解推动稳步上扬",
+        score: 86,
+        tags: ["持续进步", "习惯稳定", "反馈接受度高", "自驱增强"],
+        metrics: { 学业: 85, 参与: 83, 协作: 87 },
+        summary: "并非天赋最突出的学生，但能稳定吸收反馈并持续优化，是典型的可培养型学生。",
+        risk: "低风险 / 成长性高",
+        style: "遇到难题愿意反复练习，重视清晰目标和过程感。",
+        family: "家校沟通积极，家长配合复盘学习计划。",
+        suggestion: [
+          "继续用阶段目标表追踪，让其看见自己在变好。",
+          "给予公开表扬，强化其对成长路径的信心。"
+        ],
+        notes: [
+          ["月度", "本学期测验均值稳步上升。"],
+          ["课堂", "参与度从被动回答转向主动补充。"],
+          ["习惯", "能按照老师反馈及时修正错误。"]
+        ]
+      },
+      {
+        id: "zhou-yiming",
+        name: "周奕鸣",
+        seat: "第二组 01 号",
+        title: "偏科潜力型",
+        focus: "补齐短板后具备冲刺空间",
+        score: 79,
+        tags: ["数学突出", "阅读薄弱", "思维跳跃", "自信心不稳"],
+        metrics: { 学业: 79, 参与: 74, 协作: 71 },
+        summary: "在逻辑推演和模型类任务上很亮眼，但文本理解和长线任务耐心不足，导致整体表现被拉低。",
+        risk: "中高风险 / 偏科明显",
+        style: "对有答案边界的问题投入度高，对阅读、整理和复述型任务耐心不足。",
+        family: "家长较关注数学成绩，对阅读习惯建立存在焦虑。",
+        suggestion: [
+          "将阅读任务拆为短模块，用问题链带动理解。",
+          "让其在擅长学科中建立成就感，再迁移到弱项。"
+        ],
+        notes: [
+          ["测验", "数学单元表现优异，语文阅读失分集中。"],
+          ["课堂", "抽象推理题投入高，文本分析题易走神。"],
+          ["沟通", "面对连续受挫时会表现出明显回避。"]
+        ]
+      }
+    ];
+
+    const overviewData = [
+      { label: "班级人数", value: "36", note: "当前页展示 6 个典型画像样本，用于静态演示。" },
+      { label: "整体参与度", value: "84%", note: "本学期课堂讨论参与稳定，互动质量较上月提升。" },
+      { label: "重点关注", value: "3", note: "需要持续跟进偏科、情绪波动或执行力闭环问题。" },
+      { label: "高潜学生", value: "5", note: "适合承担引领角色，可作为班级正向杠杆。" }
+    ];
+
+    const filters = [
+      { key: "all", label: "全部画像" },
+      { key: "high", label: "高潜力" },
+      { key: "steady", label: "稳定成长" },
+      { key: "support", label: "重点关注" }
+    ];
+
+    const categoryMap = {
+      "zhang-yuxin": "high",
+      "lin-zimo": "steady",
+      "chen-xiyao": "support",
+      "xu-haoran": "support",
+      "jiang-wenqi": "steady",
+      "zhou-yiming": "support"
+    };
+
+    let activeFilter = "all";
+    let activeStudent = students[0].id;
+
+    const overviewGrid = document.getElementById("overviewGrid");
+    const filtersEl = document.getElementById("filters");
+    const studentGrid = document.getElementById("studentGrid");
+    const detailPanel = document.getElementById("detailPanel");
+
+    function renderOverview() {
+      overviewGrid.innerHTML = overviewData.map((item) => `
+        <div class="metric">
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${item.value}</div>
+          <div class="metric-note">${item.note}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderFilters() {
+      filtersEl.innerHTML = filters.map((item) => `
+        <button class="filter ${item.key === activeFilter ? "active" : ""}" data-filter="${item.key}">
+          ${item.label}
+        </button>
+      `).join("");
+
+      filtersEl.querySelectorAll(".filter").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+          const visible = getVisibleStudents();
+          if (!visible.find((student) => student.id === activeStudent)) {
+            activeStudent = visible[0].id;
+          }
+          renderFilters();
+          renderStudents();
+          renderDetail();
+        });
+      });
+    }
+
+    function getVisibleStudents() {
+      if (activeFilter === "all") return students;
+      return students.filter((student) => categoryMap[student.id] === activeFilter);
+    }
+
+    function renderStudents() {
+      const visibleStudents = getVisibleStudents();
+      studentGrid.innerHTML = visibleStudents.map((student) => `
+        <article class="student-card ${student.id === activeStudent ? "active" : ""}" data-student="${student.id}">
+          <div class="student-head">
+            <div>
+              <h3 class="student-name">${student.name}</h3>
+              <div class="student-meta">${student.title} · ${student.seat}</div>
+            </div>
+            <div class="score-badge">
+              <strong>${student.score}</strong>
+              <span>综合指数</span>
+            </div>
+          </div>
+          <div class="chips">
+            ${student.tags.map((tag) => `<span class="chip">${tag}</span>`).join("")}
+          </div>
+          <div class="bars">
+            ${Object.entries(student.metrics).map(([label, value]) => `
+              <div class="bar-row">
+                <span>${label}</span>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: ${value}%"></div>
+                </div>
+                <strong>${value}</strong>
+              </div>
+            `).join("")}
+          </div>
+          <div class="student-foot">
+            <span>${student.summary}</span>
+            <strong>${student.focus}</strong>
+          </div>
+        </article>
+      `).join("");
+
+      studentGrid.querySelectorAll(".student-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          activeStudent = card.dataset.student;
+          renderStudents();
+          renderDetail();
+        });
+      });
+    }
+
+    function renderDetail() {
+      const student = students.find((item) => item.id === activeStudent);
+      detailPanel.innerHTML = `
+        <div class="panel-title">
+          <small>学生重点观察</small>
+          <h2>画像深描</h2>
+        </div>
+        <div class="profile-top">
+          <div>
+            <div class="profile-name">${student.name}</div>
+            <div class="student-meta">${student.title} · ${student.seat}</div>
+          </div>
+          <div class="risk-pill">${student.risk}</div>
+        </div>
+        <p class="profile-summary">${student.summary}</p>
+
+        <div class="detail-block">
+          <h3>学习风格</h3>
+          <p class="profile-summary">${student.style}</p>
+        </div>
+
+        <div class="detail-block">
+          <h3>家校观察</h3>
+          <p class="profile-summary">${student.family}</p>
+        </div>
+
+        <div class="detail-block">
+          <h3>本学期证据链</h3>
+          <div class="timeline">
+            ${student.notes.map(([label, text]) => `
+              <div class="timeline-item">
+                <span>${label}</span>
+                <div>${text}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="detail-block">
+          <h3>教师决策建议</h3>
+          <div class="action-list">
+            ${student.suggestion.map((item) => `<div class="action-item">${item}</div>`).join("")}
+          </div>
+        </div>
+
+        <div class="detail-block">
+          <h3>可追踪标签</h3>
+          <div class="mini-grid">
+            <div class="mini-card">
+              <strong>课堂参与</strong>
+              <p>观察其在提问、回应与协作中的持续性与外显度。</p>
+            </div>
+            <div class="mini-card">
+              <strong>任务闭环</strong>
+              <p>记录从启动到提交的完成质量，判断是否需要过程支架。</p>
+            </div>
+            <div class="mini-card">
+              <strong>情绪信号</strong>
+              <p>关注受挫后的恢复时间，以及同伴评价对表现的影响。</p>
+            </div>
+            <div class="mini-card">
+              <strong>家庭协同</strong>
+              <p>家校共识是否清晰，是否形成一致的支持节奏。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          本页为静态 UI 演示稿，数据为示例内容。后续可替换为真实班级资料、增加学生详情页、接入学期数据源与筛选检索能力。
+        </div>
+      `;
+    }
+
+    renderOverview();
+    renderFilters();
+    renderStudents();
+    renderDetail();
+  </script>
+</body>
+</html>
